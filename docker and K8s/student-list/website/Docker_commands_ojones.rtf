@@ -1,0 +1,56 @@
+{\rtf1\ansi\deff0\nouicompat{\fonttbl{\f0\fnil\fcharset0 Arial;}{\f1\fnil\fcharset0 Consolas;}{\f2\fnil\fcharset0 Courier New;}}
+{\colortbl ;\red0\green0\blue255;}
+{\*\generator Riched20 10.0.19041}\viewkind4\uc1 
+\pard\fs22\lang2057 This is a Docker training exercise based on the Git repository at {{\field{\*\fldinst{HYPERLINK https://github.com/diranetafen/student-list }}{\fldrslt{https://github.com/diranetafen/student-list\ul0\cf0}}}}\f0\fs22\par
+\par
+The following procedure was used to complete the exercise:\par
+\par
+1. First, the Dockerfile found in /simple-api was written.\par
+2. Next, the Docker image was built with the command \f1 docker build -t pozos-api .\f0\par
+3. Then, the Docker image was run as a container using \f1 docker run --name pozos-api -d -p 5000:5000 -v $pwd/student_age.json:/data/student_age.json pozos-api\f0\par
+4. Running the given curl command, we see the expected response:\par
+\f2\par
+\f1 $ curl -u toto:python -X GET {{\field{\*\fldinst{HYPERLINK http://localhost:5000/pozos/api/v1.0/get_student_ages }}{\fldrslt{http://localhost:5000/pozos/api/v1.0/get_student_ages\ul0\cf0}}}}\f1\fs22\par
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\par
+                                 Dload  Upload   Total   Spent    Left  Speed\par
+100    64  100    64    0     0   4102      0 --:--:-- --:--:-- --:--:--  4571\{\par
+  "student_ages": \{\par
+    "alice": "12",\par
+    "bob": "13"\par
+  \}\par
+\}\par
+\f2\par
+\f0 6. For the next part, we first get the required PHP image with \f1 docker pull php:apache\f0\par
+7. The docker-compose.yml file in this directory was then written.\par
+8. Using \f1 docker-compose up\f0 , we see that the services started (albeit with warnings):\par
+\f2\par
+\f1 PS C:\\Users\\owenm\\Documents\\SelfStudy\\docker-and-k8s\\student-list> docker-compose up\par
+Creating network "student-list_app-network" with the default driver\par
+Creating student-list_api_1 ... done\par
+Creating student-list_website_1 ... done\par
+Attaching to student-list_api_1, student-list_website_1\par
+api_1      |  * Serving Flask app "student_age" (lazy loading)\par
+api_1      |  * Environment: production\par
+api_1      |    WARNING: This is a development server. Do not use it in a production deployment.\par
+api_1      |    Use a production WSGI server instead.\par
+api_1      |  * Debug mode: on\par
+api_1      |  * Running on {{\field{\*\fldinst{HYPERLINK http://0.0.0.0:5000/ }}{\fldrslt{http://0.0.0.0:5000/\ul0\cf0}}}}\f1\fs22  (Press CTRL+C to quit)\par
+api_1      |  * Restarting with stat\par
+api_1      |  * Debugger is active!\par
+api_1      |  * Debugger PIN: 253-831-458\par
+website_1  | AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.18.0.3. Set the 'ServerName' directive globally to suppress this message\par
+website_1  | AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.18.0.3. Set the 'ServerName' directive globally to suppress this message\par
+website_1  | [Fri Aug 06 20:26:31.146211 2021] [mpm_prefork:notice] [pid 1] AH00163: Apache/2.4.38 (Debian) PHP/8.0.9 configured -- resuming normal operations\par
+website_1  | [Fri Aug 06 20:26:31.146332 2021] [core:notice] [pid 1] AH00094: Command line: 'apache2 -D FOREGROUND'\par
+\f2\par
+\f0 9. Unfortunately the PHP function \f1 file_get_contents\f0  fails to communicate with the API, as seen in the screenshot in this folder.\par
+10. I rebuilt with Alpine, and connected to Alpine to test the curl command from step (4) but with 'pozos-api' instead of 'localhost'.\par
+11. I also tested the PHP command from the webapp directly in the Alpine shell.\par
+12. The curl command works as expected while the PHP command gives the same error from Alpine as from the webapp, showing that the problem is with PHP.\par
+13. Exposing the external port 5000 and trying to connect to {{\field{\*\fldinst{HYPERLINK http://localhost:5000 }}{\fldrslt{http://localhost:5000\ul0\cf0}}}}\f0\fs22  in the PHP script also fails.\par
+14. Next, I modified the PHP to use a custom \f1 curl_get_contents\f0  function to debug the communication.\par
+15. By printing the output of this function, I was able to see that the problem was an authentication error, and that the USERNAME and PASSWORD args were not getting passed to the container.\par
+16. Consulting the documentation, we see that it is necessary to use "\f1 environment"\f0  instead of "\f1 context: args"\f0  to pass an environment variable ("\f1 context: args"\f0  are only visible at build time, not when the container is running.\par
+17. Making this change, the app works as expected (see screenshot).\par
+\par
+}
